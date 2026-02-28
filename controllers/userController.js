@@ -33,6 +33,7 @@ const addUser = async (req, res) => {
       data: user,
     });
   } catch (err) {
+    console.log(err);
     res.status(500).json({ msg: "Server Error", error: err.message });
   }
 };
@@ -70,11 +71,34 @@ const login = async (req, res) => {
       token: token,
     });
   } catch (err) {
-    console.log(err); // ✅ this will show the real error in terminal
+    console.log(err); 
     res.status(500).json({ msg: "Server Error", error: err.message });
   }
 };
+const getAllusers=async (req,res)=> {
+    try{
+//get users from database 
+const users=await User.find()
+
+//check if users exist
+if(!users) return res.status(404).json({msg:"No users found"})
+
+    //count users 
+    const count = await User.countDocuments()
+//send response
+res.status(200).json({
+    success:true,
+    msg:"users fetched successfully",
+    count:count,
+    data:users
+})
+    }catch(err){
+ console.log(err);
+ res.status(500).json({ msg: "Server Error", error: err.message });
+    }
+}
 module.exports = {
   addUser,
-  login
+  login,
+  getAllusers
 };
