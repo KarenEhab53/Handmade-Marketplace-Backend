@@ -16,6 +16,11 @@ async function dbconnection() {
   }
 }
 dbconnection()
+app.use("/uploads", express.static("uploads"));
+//call routes
+const userRoutes=require("./routes/userRoutes")
+app.use("/api",userRoutes)
+
 
 const port=process.env.PORT||3000
 app.listen(port,console.log(`working in port ${port}`));
