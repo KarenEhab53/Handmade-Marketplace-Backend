@@ -97,8 +97,29 @@ res.status(200).json({
  res.status(500).json({ msg: "Server Error", error: err.message });
     }
 }
+const getAdmins=async(req,res)=>{
+  try {
+    //get user bosed on role admin
+    const users=await User.findOne({role:"admin"})
+    if(!users) return res.status(404).json({msg:"No admins found"})
+    const count= await User.countDocuments();
+  res.status(200).json({
+    success:true,
+    msg:"Admins fetched successfully",
+    totalAdmins:count,
+    data:users
+
+  })
+  } catch (error) {
+    console.log(err);
+    res.status(500).json({msg:"Server Error",err:error})
+    
+  }
+}
 module.exports = {
   addUser,
   login,
-  getAllusers
+  getAllusers,
+  getAdmins,
+  
 };
