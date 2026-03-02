@@ -20,6 +20,8 @@ app.use("/uploads", express.static("uploads"));
 //call routes
 const userRoutes=require("./routes/userRoutes")
 app.use("/api",userRoutes)
+const productRoutes=require("./routes/productRoutes")
+app.use("/api",productRoutes)
 
 
 const port=process.env.PORT||3000
