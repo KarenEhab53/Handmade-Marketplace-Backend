@@ -62,5 +62,60 @@ const addProduct = async (req, res) => {
     res.status(500).json({ msg: "Server error", error: error.message });
   }
 };
+const allProduct = async (req, res) => {
+  try {
+    //req to find all products
+    const products = await Product.find();
 
-module.exports = { addProduct };
+    //check if no products found
+    if (!products) return res.status(404).json({ msg: "products not found" });
+    //count products
+    const count = await Product.countDocuments();
+
+    res.status(200).json({
+      success: true,
+      msg: "products fetched successfully",
+      totalProducts: count,
+      data: products,
+    });
+  } catch (error) {
+    console.log(err);
+    res.status(500).json({ msg: "Server Error", err: error });
+  }
+};
+const updateProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    //get product from product id
+    const product = await Product.findById( id );
+    //check that product found
+    if (!id) return res.status(404).json({ msg: "product not found" });
+    //req.body
+    const { name, description, price, stock, status, category } = req.body;
+    //check the role of admin who can update
+    if (req.user && req.user.role == "admin") {
+      if (name) product.name = name;
+      if (description) product.description = description;
+      if (price) product.price = price;
+      if (stock) product.stock = stock;
+      if (status) product.status = status;
+      if (category) product.category = category;
+    }
+    if (req.files && req.files.length > 0 && req.user.role === "admin") {
+      product.profileImage = req.files.map(
+        (file) =>
+          `${req.protocol}://${req.get("host")}/uploads/${file.filename}`,
+      );
+    }
+    await product.save();
+    res.status(200).json({
+      success: true,
+      msg: "product updated successfully",
+      data: product,
+    });
+    //update data
+  } catch (error) {
+    res.status(500).json({ msg: "Server error", error: error.message });
+  }
+};
+module.exports = { addProduct, allProduct, updateProduct };
