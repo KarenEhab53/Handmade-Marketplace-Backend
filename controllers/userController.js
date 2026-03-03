@@ -149,32 +149,42 @@ const deleteMyAccount = async (req, res) => {
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ msg: "User not found" });
 
-    const { name, phone, address } = req.body;
+    let { name, phone, address } = req.body;
+
+    // Parse strings from form-data
+    if (typeof phone === "string") phone = JSON.parse(phone);
+    if (typeof address === "string") address = JSON.parse(address);
 
     // Update name
     if (name) user.name = name;
 
-    // Add phones
-    if (phone && Array.isArray(phone)) {
-      phone.forEach((p) => {
-        if (!user.phone.includes(p)) {
-          // optional: avoid duplicates
-          user.phone.push(p);
-        }
-      });
-    }
+    // Update phones
+    if (phone) user.phone = phone;
 
-  // Add addresses
+    // Update addresses
     if (address && Array.isArray(address)) {
       address.forEach((addr) => {
-        const { street, buildingNumber, city, governorate } = addr;
-        if (street && buildingNumber && city && governorate) {
-          user.address.push({
-            street,
-            buildingNumber,
-            city,
-            governorate,
-          });
+        if (addr._id) {
+          // Find existing address by _id
+          const existing = user.address.id(addr._id);
+          if (existing) {
+            // Update fields
+            existing.street = addr.street || existing.street;
+            existing.buildingNumber =
+              addr.buildingNumber || existing.buildingNumber;
+            existing.city = addr.city || existing.city;
+            existing.governorate = addr.governorate || existing.governorate;
+            existing.isDefault =
+              typeof addr.isDefault === "boolean"
+                ? addr.isDefault
+                : existing.isDefault;
+          } else {
+            // If _id not found, optionally ignore or push new
+            user.address.push(addr);
+          }
+        } else {
+          // If no _id, push as new address
+          user.address.push(addr);
         }
       });
     }
