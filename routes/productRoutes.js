@@ -1,12 +1,15 @@
 const express = require("express");
 const router = express.Router();
-
-const { addProduct,allProduct,updateProduct } = require("../controllers/productController");
+const {
+  addProduct,
+  allProduct,
+  updateProduct,
+  deleteProduct,
+} = require("../controllers/productController");
 const protect = require("../middleware/authMiddleware");
 const { isAdmin } = require("../middleware/adminMiddleware");
 const upload = require("../middleware/uploadMiddleware");
 
-// Use array to accept single or multiple images under "profileImage"
 router.post(
   "/addproduct",
   protect,
@@ -14,7 +17,7 @@ router.post(
   upload.array("profileImage", 5),
   addProduct,
 );
-router.get("/allproducts",allProduct);
+router.get("/allproducts", allProduct);
 router.put(
   "/updateproduct/:id",
   protect,
@@ -22,4 +25,5 @@ router.put(
   upload.array("profileImage", 5),
   updateProduct,
 );
+router.delete("/deleteproduct/:id", protect, isAdmin, deleteProduct);
 module.exports = router;

@@ -89,7 +89,7 @@ const updateProduct = async (req, res) => {
     //get product from product id
     const product = await Product.findById( id );
     //check that product found
-    if (!id) return res.status(404).json({ msg: "product not found" });
+    if (!product) return res.status(404).json({ msg: "product not found" });
     //req.body
     const { name, description, price, stock, status, category } = req.body;
     //check the role of admin who can update
@@ -118,4 +118,22 @@ const updateProduct = async (req, res) => {
     res.status(500).json({ msg: "Server error", error: error.message });
   }
 };
-module.exports = { addProduct, allProduct, updateProduct };
+const deleteProduct=async(req,res)=>{
+  try {
+    //check for id from url
+    const { id } = req.params;
+    //check for product found
+    const product = await Product.findByIdAndDelete(id);
+    if (!product) return res.status(404).json({ msg: "product not found" });
+  
+    res.status(200).json({
+      success: true,
+      msg: "product deleted successfully",
+    });
+  } catch (error) {
+     res.status(500).json({ msg: "Server error", error: error.message });
+  }
+  
+
+}
+module.exports = { addProduct, allProduct, updateProduct ,deleteProduct};

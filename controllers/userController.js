@@ -1,6 +1,6 @@
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
-const jwt=require("jsonwebtoken")
+const jwt = require("jsonwebtoken");
 const addUser = async (req, res) => {
   try {
     const { name, email, password, phone = [], address, role } = req.body;
@@ -71,55 +71,134 @@ const login = async (req, res) => {
       token: token,
     });
   } catch (err) {
-    console.log(err); 
+    console.log(err);
     res.status(500).json({ msg: "Server Error", error: err.message });
   }
 };
-const getAllusers=async (req,res)=> {
-    try{
-//get users from database 
-const users=await User.find()
+const getAllusers = async (req, res) => {
+  try {
+    //get users from database
+    const users = await User.find();
 
-//check if users exist
-if(!users) return res.status(404).json({msg:"No users found"})
+    //check if users exist
+    if (!users) return res.status(404).json({ msg: "No users found" });
 
-    //count users 
-    const count = await User.countDocuments()
-//send response
-res.status(200).json({
-    success:true,
-    msg:"users fetched successfully",
-    count:count,
-    data:users
-})
-    }catch(err){
- console.log(err);
- res.status(500).json({ msg: "Server Error", error: err.message });
-    }
-}
-const getAdmins=async(req,res)=>{
+    //count users
+    const count = await User.countDocuments();
+    //send response
+    res.status(200).json({
+      success: true,
+      msg: "users fetched successfully",
+      count: count,
+      data: users,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ msg: "Server Error", error: err.message });
+  }
+};
+const getAdmins = async (req, res) => {
   try {
     //get user bosed on role admin
-    const users=await User.findOne({role:"admin"})
-    if(!users) return res.status(404).json({msg:"No admins found"})
-    const count= await User.countDocuments();
-  res.status(200).json({
-    success:true,
-    msg:"Admins fetched successfully",
-    totalAdmins:count,
-    data:users
-
-  })
+    const users = await User.findOne({ role: "admin" });
+    if (!users) return res.status(404).json({ msg: "No admins found" });
+    const count = await User.countDocuments();
+    res.status(200).json({
+      success: true,
+      msg: "Admins fetched successfully",
+      totalAdmins: count,
+      data: users,
+    });
   } catch (error) {
     console.log(err);
-    res.status(500).json({msg:"Server Error",err:error})
-    
+    res.status(500).json({ msg: "Server Error", err: error });
   }
-}
+};
+const deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findByIdAndDelete(id);
+    if (!user) return res.status(404).json({ msg: "user not found" });
+  } catch (error) {
+    res.status(500).json({ msg: "Server Error", error: err.message });
+  }
+};
+const deleteMyAccount = async (req, res) => {
+  try {
+    const id = req.user.id;
+
+    const user = await User.findByIdAndDelete(id);
+
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      msg: "Your account has been deleted successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      msg: "Server Error",
+      error: error.message,
+    });
+  }
+};const updateUser = async (req, res) => {
+  try {
+    if (!req.body) req.body = {};
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ msg: "User not found" });
+
+    const { name, phone, address } = req.body;
+
+    // Update name
+    if (name) user.name = name;
+
+    // Add phones
+    if (phone && Array.isArray(phone)) {
+      phone.forEach((p) => {
+        if (!user.phone.includes(p)) {
+          // optional: avoid duplicates
+          user.phone.push(p);
+        }
+      });
+    }
+
+  // Add addresses
+    if (address && Array.isArray(address)) {
+      address.forEach((addr) => {
+        const { street, buildingNumber, city, governorate } = addr;
+        if (street && buildingNumber && city && governorate) {
+          user.address.push({
+            street,
+            buildingNumber,
+            city,
+            governorate,
+          });
+        }
+      });
+    }
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      msg: "User updated successfully",
+      data: user,
+    });
+  } catch (error) {
+    res.status(500).json({
+      msg: "Server Error",
+      error: error.message,
+    });
+  }
+};
 module.exports = {
   addUser,
   login,
   getAllusers,
   getAdmins,
-  
+  deleteUser,
+  deleteMyAccount,
+  updateUser
 };
