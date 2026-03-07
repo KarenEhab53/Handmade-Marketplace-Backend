@@ -143,7 +143,8 @@ const deleteMyAccount = async (req, res) => {
       error: error.message,
     });
   }
-};const updateUser = async (req, res) => {
+};
+const updateUser = async (req, res) => {
   try {
     if (!req.body) req.body = {};
     const user = await User.findById(req.user.id);
@@ -165,10 +166,8 @@ const deleteMyAccount = async (req, res) => {
     if (address && Array.isArray(address)) {
       address.forEach((addr) => {
         if (addr._id) {
-          // Find existing address by _id
           const existing = user.address.id(addr._id);
           if (existing) {
-            // Update fields
             existing.street = addr.street || existing.street;
             existing.buildingNumber =
               addr.buildingNumber || existing.buildingNumber;
@@ -179,11 +178,9 @@ const deleteMyAccount = async (req, res) => {
                 ? addr.isDefault
                 : existing.isDefault;
           } else {
-            // If _id not found, optionally ignore or push new
             user.address.push(addr);
           }
         } else {
-          // If no _id, push as new address
           user.address.push(addr);
         }
       });
@@ -203,6 +200,7 @@ const deleteMyAccount = async (req, res) => {
     });
   }
 };
+
 module.exports = {
   addUser,
   login,
@@ -210,5 +208,5 @@ module.exports = {
   getAdmins,
   deleteUser,
   deleteMyAccount,
-  updateUser
+  updateUser,
 };
