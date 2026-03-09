@@ -22,7 +22,8 @@ const userRoutes=require("./routes/userRoutes")
 app.use("/api",userRoutes)
 const productRoutes=require("./routes/productRoutes")
 app.use("/api",productRoutes)
-
+const cartRoute=require("./routes/cartRoutes")
+app.use("/api",cartRoute)
 
 const port=process.env.PORT||3000
 app.listen(port,console.log(`working in port ${port}`));

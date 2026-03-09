@@ -43,6 +43,9 @@ const userSchema = new mongoose.Schema(
       default: "default.png",
     },
     role: { type: String, enum: ["admin", "user"], default: "user" },
+
+    otp: String,
+    otpExpire: Date,
   },
   { timestamps: true },
 );

@@ -6,9 +6,10 @@ const {
   getAllusers,
   getAdmins,
   deleteUser,
-  deleteMyAccount
-  ,updateUser
+  deleteMyAccount,
+  updateUser,
 } = require("../controllers/userController");
+const {forgetPassword,verfiyOtp,resetPassword}=require("../controllers/forgotPassController")
 const upload = require("../middleware/uploadMiddleware");
 const { isAdmin } = require("../middleware/adminMiddleware");
 const protect = require("../middleware/authMiddleware");
@@ -19,4 +20,7 @@ router.get("/allAdmins", getAdmins);
 router.delete("/deleteuser/:id", protect, isAdmin, deleteUser);
 router.delete("/deleteMyaccount", protect, deleteMyAccount);
 router.put("/updateUser", protect, updateUser);
+router.post("/forgot-password", forgetPassword);
+router.post("/verify-otp", verfiyOtp);
+router.post("/reset-password", resetPassword);
 module.exports = router;

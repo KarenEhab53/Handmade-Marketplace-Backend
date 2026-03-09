@@ -22,7 +22,7 @@ router.put(
   "/updateproduct/:id",
   protect,
   isAdmin,
-  upload.array("profileImage", 5),
+  upload.array("profileImage"),
   updateProduct,
 );
 router.delete("/deleteproduct/:id", protect, isAdmin, deleteProduct);

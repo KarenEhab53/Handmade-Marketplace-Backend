@@ -91,7 +91,7 @@ const updateProduct = async (req, res) => {
     //check that product found
     if (!product) return res.status(404).json({ msg: "product not found" });
     //req.body
-    const { name, description, price, stock, status, category } = req.body;
+    const { name, description, price, stock, status, category } = req.body||{};
     //check the role of admin who can update
     if (req.user && req.user.role == "admin") {
       if (name) product.name = name;
