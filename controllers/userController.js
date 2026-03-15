@@ -1,12 +1,23 @@
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { registerSchema ,loginSchema,updateUserSchema} = require("./validation/registerSchema");
+const fs = require("fs");
+const path = require("path");
 const addUser = async (req, res) => {
   try {
-    const { name, email, password, phone = [], address, role } = req.body;
-
-    if (!name || !email || !password)
-      return res.status(400).json({ msg: "Missing data" });
+    const { error, value } = registerSchema.validate(req.body, {
+      //Joi will not stop at the first error; it will collect all validation errors.
+      abortEarly: false,
+      // Joi will remove any extra fields from req.body that are not defined in the schema.
+      stripUnknown: true,
+    });
+    if(error){
+      return res.status(400).json({
+        msg:error.details.map((err)=>err.message)
+      })
+    }
+    const { name, email, password, phone = [], address, role } = value;
 
     const existUser = await User.findOne({ email });
     if (existUser) return res.status(409).json({ msg: "User Already Exist" });
@@ -40,9 +51,11 @@ const addUser = async (req, res) => {
 const login = async (req, res) => {
   try {
     //validate req.body
-    const { email, password } = req.body;
-    if (!email || !password)
-      return res.status(400).json({ msg: "Missing Data" });
+    const {error,value}=loginSchema.validate(req.body,{
+      abortEarly:false,
+      stripUnknown:true
+    })
+    const { email, password } = value;
     //check user exist                   password is invisible by default in every query
     const user = await User.findOne({ email }).select("+password");
     if (!user) return res.status(404).json({ msg: "User not found" });
@@ -143,49 +156,84 @@ const deleteMyAccount = async (req, res) => {
       error: error.message,
     });
   }
-};
-const updateUser = async (req, res) => {
+};const updateUser = async (req, res) => {
   try {
-    if (!req.body) req.body = {};
-    const user = await User.findById(req.user.id);
-    if (!user) return res.status(404).json({ msg: "User not found" });
+    // Validate request body
+    const { error, value } = updateUserSchema.validate(req.body, {
+      abortEarly: false,
+      stripUnknown: true,
+    });
 
-    let { name, phone, address } = req.body;
+    if (error) {
+      return res.status(400).json({
+        msg: "Validation error",
+        errors: error.details.map((e) => e.message),
+      });
+    }
 
-    // Parse strings from form-data
+    // Destructure validated fields
+    let { name, phone, address } = value;
+
+    // Parse strings if sent via form-data
     if (typeof phone === "string") phone = JSON.parse(phone);
     if (typeof address === "string") address = JSON.parse(address);
 
-    // Update name
-    if (name) user.name = name;
+    // Find the user
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ msg: "User not found" });
 
-    // Update phones
-    if (phone) user.phone = phone;
+    // ------------------------
+    // Update basic fields
+    // ------------------------
+    if (name !== undefined) user.name = name;
+    if (phone !== undefined) user.phone = phone;
 
+    // ------------------------
     // Update addresses
-    if (address && Array.isArray(address)) {
+    // ------------------------
+    if (Array.isArray(address)) {
       address.forEach((addr) => {
+        // Ensure only one default
+        if (addr.isDefault) {
+          user.address.forEach((a) => (a.isDefault = false));
+        }
+
         if (addr._id) {
+          // Update existing address
           const existing = user.address.id(addr._id);
           if (existing) {
-            existing.street = addr.street || existing.street;
+            existing.street = addr.street ?? existing.street;
             existing.buildingNumber =
-              addr.buildingNumber || existing.buildingNumber;
-            existing.city = addr.city || existing.city;
-            existing.governorate = addr.governorate || existing.governorate;
+              addr.buildingNumber ?? existing.buildingNumber;
+            existing.apartmentNumber =
+              addr.apartmentNumber ?? existing.apartmentNumber;
+            existing.city = addr.city ?? existing.city;
+            existing.governorate = addr.governorate ?? existing.governorate;
             existing.isDefault =
               typeof addr.isDefault === "boolean"
                 ? addr.isDefault
                 : existing.isDefault;
           } else {
+            // _id not found → add as new
             user.address.push(addr);
           }
         } else {
+          // New address → add
           user.address.push(addr);
         }
       });
     }
 
+    // ------------------------
+    // Update profile image if uploaded
+    // ------------------------
+    if (req.file) {
+      user.profileImage = `${req.protocol}://${req.get(
+        "host",
+      )}/uploads/${req.file.filename}`;
+    }
+
+    // Save updated user
     await user.save();
 
     res.status(200).json({
@@ -194,13 +242,13 @@ const updateUser = async (req, res) => {
       data: user,
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({
       msg: "Server Error",
       error: error.message,
     });
   }
 };
-
 module.exports = {
   addUser,
   login,

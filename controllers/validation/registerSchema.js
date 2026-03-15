@@ -25,5 +25,32 @@ const registerSchema = Joi.object({
   profileImage: Joi.string().default("default.png"),
   role: Joi.string().valid("admin", "user").default("user"),
 });
+const loginSchema = Joi.object({
+  email: Joi.string().email().required(),
+  password: Joi.string().min(6).max(50).required(),
+});
+const updateUserSchema = Joi.object({
+  name: Joi.string().min(3).max(50),
 
-module.exports = registerSchema;
+  phone: Joi.array()
+    .items(Joi.string().pattern(/^01[0-2,5]{1}[0-9]{8}$/))
+    .min(1)
+    .messages({
+      "string.pattern.base":
+        "Please use a valid Egyptian phone number (e.g. 01xxxxxxxxx)",
+    }),
+
+  address: Joi.array().items(
+    Joi.object({
+      street: Joi.string().allow(""),
+      buildingNumber: Joi.string().allow(""),
+      apartmentNumber: Joi.string().allow(""),
+      city: Joi.string().allow(""),
+      governorate: Joi.string().allow(""),
+      isDefault: Joi.boolean().default(false),
+    }),
+  ),
+});
+module.exports = {
+  registerSchema,loginSchema,updateUserSchema
+};
