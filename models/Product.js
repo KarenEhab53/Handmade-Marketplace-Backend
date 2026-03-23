@@ -13,13 +13,7 @@ const productSchema = new mongoose.Schema(
       default: "in the stock",
     },
     category: { type: String, required: true },
-    reviews: [
-      {
-        user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-        rating: { type: Number, min: 1, max: 5 },
-        comment: String,
-      },
-    ],
+   
   },
   { timestamps: true },
 );

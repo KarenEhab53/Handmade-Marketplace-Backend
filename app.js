@@ -32,6 +32,8 @@ const cartRoute=require("./routes/cartRoutes")
 app.use("/api",cartRoute)
 const checkoutRouter=require("./routes/checkoutRoutes")
 app.use("/api",checkoutRouter)
+const reviewRoutes=require("./routes/reviewRoutes")
+app.use("/api",reviewRoutes)
 
 const port=process.env.PORT||3000
 app.listen(port,console.log(`working in port ${port}`));
