@@ -13,21 +13,10 @@ const orderSchema = new mongoose.Schema(
         productId: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "Product",
-          required: true,
         },
-        name: {
-          type: String,
-          required: true,
-        },
-        price: {
-          type: Number,
-          required: true,
-        },
-        quantity: {
-          type: Number,
-          required: true,
-          min: 1,
-        },
+        name: String,
+        price: Number,
+        quantity: Number,
       },
     ],
 
@@ -36,25 +25,28 @@ const orderSchema = new mongoose.Schema(
       required: true,
     },
 
-    shippingAddress: {
-      address: { type: String, required: true },
-      city: { type: String, required: true },
-      phone: { type: String, required: true },
+    address: {
+      street: String,
+      buildingNumber: String,
+      apartmentNumber: String,
+      city: String,
+      governorate: String,
     },
 
     paymentMethod: {
       type: String,
-      enum: ["Cash", "Card"],
-      default: "Cash",
+      enum: ["cash", "card"],
+      default: "cash",
     },
 
     status: {
       type: String,
-      enum: ["Pending", "Processing", "Completed"],
-      default: "Pending",
+      enum: ["pending", "confirmed", "shipped", "delivered", "cancelled"],
+      default: "pending",
     },
+    phone: { type: String, required: true }
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 module.exports = mongoose.model("Order", orderSchema);
