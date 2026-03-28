@@ -14,44 +14,50 @@ const addReview = async (req, res) => {
 
     const existingReview = await Review.findOne({
       user: userId,
-      product: productId
+      product: productId,
     });
 
     if (existingReview) {
       return res.status(400).json({
-        msg: "You already reviewed this product"
+        msg: "You already reviewed this product",
       });
     }
 
-    // Save the review
-    const review = new Review({
+    // Create review
+    const review = await Review.create({
       user: userId,
       product: productId,
       rating,
-      comment
+      comment,
     });
-    await review.save();
 
-    // Find the product and update its rating
+
+    await Product.findByIdAndUpdate(productId, {
+      $push: { reviews: review.id },
+    });
+
+    // Get product
     const product = await Product.findById(productId);
     if (!product) {
       return res.status(404).json({ msg: "Product not found" });
     }
 
-    // Update rating and number of reviews
+    // Recalculate rating
     const reviews = await Review.find({ product: productId });
     const numReviews = reviews.length;
+
     const avgRating =
       reviews.reduce((acc, r) => acc + r.rating, 0) / numReviews;
 
     product.numReviews = numReviews;
-    product.rating = avgRating.toFixed(1); // optional rounding
+    product.rating = Number(avgRating.toFixed(1));
+
     await product.save();
 
     res.json({
       success: true,
       msg: "Review added successfully",
-      data: review
+      data: review,
     });
   } catch (err) {
     console.error(err);

@@ -59,23 +59,23 @@ const addProduct = async (req, res) => {
 };
 const allProduct = async (req, res) => {
   try {
-    //req to find all products
-    const products = await Product.find();
+    const products = await Product.find().populate("reviews", " comment");
 
-    //check if no products found
-    if (!products) return res.status(404).json({ msg: "products not found" });
-    //count products
+    if (products.length === 0) {
+      return res.status(404).json({ msg: "No products found" });
+    }
+
     const count = await Product.countDocuments();
 
     res.status(200).json({
       success: true,
-      msg: "products fetched successfully",
+      msg: "Products fetched successfully",
       totalProducts: count,
       data: products,
     });
   } catch (error) {
-    console.log(err);
-    res.status(500).json({ msg: "Server Error", err: error });
+    console.log(error);
+    res.status(500).json({ msg: "Server Error", error });
   }
 };
 const updateProduct = async (req, res) => {

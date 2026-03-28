@@ -13,7 +13,7 @@ const productSchema = new mongoose.Schema(
       default: "in the stock",
     },
     category: { type: String, required: true },
-   
+    reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: "Review" }],
   },
   { timestamps: true },
 );
