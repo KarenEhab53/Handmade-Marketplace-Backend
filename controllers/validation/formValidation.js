@@ -6,4 +6,4 @@ const formSchema = Joi.object({
   comment: Joi.string().min(3).required()
 });
 
-module.exports = { formSchema }; // ✅ Must export as an object
+module.exports = { formSchema }; 
