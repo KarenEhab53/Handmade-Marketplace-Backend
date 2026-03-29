@@ -1,4 +1,11 @@
 {
+  "name": "backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cloudinary": "^1.41.3",
@@ -12,7 +19,6 @@
     "multer": "^2.1.0",
     "multer-storage-cloudinary": "^4.0.0",
     "nodemailer": "^8.0.2",
-    "nodemon": "^3.1.14",
     "resend": "^6.9.3"
   }
 }
