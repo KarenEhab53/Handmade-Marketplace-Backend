@@ -97,6 +97,7 @@ const updateUserStatus = async (req, res) => {
   try {
     const { orderId } = req.params;
     const { status } = req.body;
+// console.log(orderId);
 
     const userId = req.user.id;
 

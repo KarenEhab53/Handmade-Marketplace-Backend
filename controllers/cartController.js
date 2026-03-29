@@ -98,20 +98,33 @@ const getCart = async (req, res) => {
 };
 const deleteItem = async (req, res) => {
   try {
-     const userId = req.user.id; 
+    const userId = req.user.id;
     const { productId } = req.params;
-    const cart = await Cart.findOne({ userId });
-    const product = await Product.findOne({ productId });
-    if (!product) return res.status(404).json({ msg: "Product not found" });
 
+    // ✅ Find cart first
+    const cart = await Cart.findOne({ userId });
     if (!cart) return res.status(404).json({ msg: "Cart not found" });
-cart.items=cart.items.filter(item=>item.productId?.toString()!==productId);
+
+    // ✅ Check the item actually exists in the cart (no Product lookup needed)
+    const itemExists = cart.items.some(
+      (item) => item.productId?.toString() === productId,
+    );
+    if (!itemExists)
+      return res.status(404).json({ msg: "Item not found in cart" });
+
+    // ✅ Remove the item
+    cart.items = cart.items.filter(
+      (item) => item.productId?.toString() !== productId,
+    );
+
+    // ✅ Recalculate total (only once)
     cart.totalPrice = cart.items.reduce(
       (sum, item) => sum + item.quantity * item.price,
       0,
     );
-        cart.totalPrice = cart.items.reduce((sum, item) => sum + item.quantity * item.price, 0);
-await cart.save();
+
+    await cart.save();
+
     res.status(200).json({
       success: true,
       msg: "Product deleted successfully",
